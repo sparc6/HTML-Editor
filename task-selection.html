@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Görev Seçimi - HTML Öğrenim Platformu</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Task Selection Screen -->
+    <div class="level-selection-screen" id="levelSelectionScreen">
+      <!-- Back to Categories Button - Top Left -->
+      <button class="back-to-categories-floating" id="backToCategoriesBtn" onclick="window.location.href='index.html'">
+        <span class="button-text">← Anasayfa</span>
+      </button>
+      
+      <div class="level-selection-container">
+        <div class="level-header">
+          <div class="level-logo">
+            <div class="logo-icon">🌐</div>
+            <h1 id="categoryTitle">Kategori Seçildi</h1>
+          </div>
+          <p class="level-subtitle" id="categoryDescription">
+            <span class="subtitle-main">Bu seviyedeki görevleri tamamlayarak HTML becerilerinizi geliştirin!</span>
+          </p>
+        </div>
+        
+        <!-- Zigzag Path -->
+        <div class="zigzag-path" id="zigzagPath">
+          <div class="path-container">
+            <div class="zigzag-container" id="zigzagContainer">
+              <!-- Task nodes will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/html-data.js"></script>
+    <script src="js/task-selection.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML Öğrenim Platformu - Bilişim Garajı</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Level Selection Screen -->
+    <div class="level-selection-screen" id="levelSelectionScreen">
+      <div class="level-selection-container">
+        <div class="level-header">
+          <div class="level-logo">
+            <div class="logo-icon">🌐</div>
+            <h1>HTML Öğrenim Platformu</h1>
+          </div>
+          <p class="level-subtitle">
+            <span class="subtitle-main">Profesyonel web geliştirme becerilerinizi adım adım geliştirin!</span><br>
+            <span class="subtitle-secondary">Hangi seviyeden başlamak istiyorsunuz?</span>
+          </p>
+        </div>
+
+        <!-- HTML-101 Bölüm Slider -->
+        <section class="section-carousel" id="sectionCarousel">
+          <div class="section-carousel-header">
+            <h2>📚 HTML-101 Müfredatı</h2>
+            <p>Temel HTML etiketlerinden modern web yapılarına kadar</p>
+          </div>
+          <div class="section-carousel-wrapper">
+            <button class="carousel-button carousel-button--prev" id="carouselPrevBtn" aria-label="Önceki bölümler">
+              <span class="carousel-button-icon">◀</span>
+            </button>
+            <div class="section-carousel-viewport">
+              <div class="section-carousel-track" id="sectionCarouselTrack">
+                <!-- Section cards will be populated by JavaScript -->
+              </div>
+            </div>
+            <button class="carousel-button carousel-button--next" id="carouselNextBtn" aria-label="Sonraki bölümler">
+              <span class="carousel-button-icon">▶</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Kategori Kartları -->
+        <div class="categories-section">
+          <h2>🎯 Hızlı Başlangıç</h2>
+          <div class="categories-grid" id="categoriesGrid">
+            <!-- Categories will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/html-data.js"></script>
+    <script src="js/level-selection.js"></script>
+  </body>
+</html>
+

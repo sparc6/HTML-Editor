@@ -42,7 +42,14 @@ function createDefaultProgress() {
 document.addEventListener("DOMContentLoaded", function () {
   loadUserProgress();
   renderSectionCarousel();
-  renderCategoryCards();
+
+  // Developer Mode FAB
+  const developerModeFab = document.getElementById("developerModeFab");
+  if (developerModeFab) {
+    developerModeFab.addEventListener("click", () => {
+      window.location.href = "editor.html?mode=free";
+    });
+  }
 });
 
 // Render HTML-101 Sections Carousel
@@ -152,74 +159,4 @@ function renderSectionCarousel() {
   updateButtons();
 }
 
-// Render Category Cards (Quick Start)
-function renderCategoryCards() {
-  const categoriesGrid = document.getElementById("categoriesGrid");
-  if (!categoriesGrid) {
-    console.error("categoriesGrid element bulunamadı!");
-    return;
-  }
-
-  categoriesGrid.innerHTML = "";
-
-  const categories = window.QUICK_START_TASKS || [];
-
-  categories.forEach((category, index) => {
-    const categoryCard = document.createElement("div");
-    categoryCard.className = "category-card";
-    categoryCard.dataset.category = category.category;
-
-    categoryCard.innerHTML = `
-      <div class="category-content">
-        <div class="card-top">
-          <div class="card-header">
-            <span class="category-icon">${category.icon}</span>
-            <h3 class="category-title">${category.title}</h3>
-            <p class="category-description">${category.description}</p>
-          </div>
-          
-          <div class="card-footer">
-            <div class="category-stats">
-              <div class="category-difficulty">
-                <span class="difficulty-stars">${getDifficultyStars(category.level)}</span>
-              </div>
-              <div class="category-tasks">
-                ${category.taskCount} görev
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="button-container">
-          <button class="start-button">
-            Başla →
-          </button>
-        </div>
-      </div>
-    `;
-
-    // Animation delay
-    categoryCard.style.animationDelay = `${index * 0.1}s`;
-
-    categoryCard.addEventListener("click", () => {
-      window.location.href = `task-selection.html?category=${encodeURIComponent(category.category)}`;
-    });
-
-    categoriesGrid.appendChild(categoryCard);
-  });
-}
-
-// Get difficulty stars
-function getDifficultyStars(level) {
-  switch (level) {
-    case "Temel":
-      return "★★☆☆☆";
-    case "Orta":
-      return "★★★☆☆";
-    case "İleri":
-      return "★★★★★";
-    default:
-      return "★★☆☆☆";
-  }
-}
 

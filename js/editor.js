@@ -1,9 +1,10 @@
 // Editor Screen JavaScript
 
 // Global Variables
-let htmlEditor, cssEditor, jsEditor;
+let htmlEditor;
 let currentTask = null;
 let currentLanguage = 'html';
+let isFreeMode = false;
 let userProgress = {
   level: 1,
   points: 0,
@@ -14,16 +15,26 @@ let userProgress = {
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", function () {
+  // Check if it's free mode
+  const urlParams = new URLSearchParams(window.location.search);
+  isFreeMode = urlParams.get('mode') === 'free';
+  
   loadUserProgress();
   initializeEditors();
-  loadTask();
+  
+  if (isFreeMode) {
+    setupFreeMode();
+  } else {
+    loadTask();
+  }
+  
   setupEventListeners();
   updateProgressDisplay();
 });
 
 // Initialize CodeMirror Editors
 function initializeEditors() {
-  // HTML Editor
+  // HTML Editor with enhanced features
   htmlEditor = CodeMirror.fromTextArea(document.getElementById("htmlEditor"), {
     mode: "htmlmixed",
     theme: "monokai",
@@ -31,39 +42,52 @@ function initializeEditors() {
     autoCloseTags: true,
     autoCloseBrackets: true,
     matchBrackets: true,
+    matchTags: { bothTags: true },
     indentUnit: 2,
     tabSize: 2,
-    lineWrapping: true
+    lineWrapping: true,
+    foldGutter: true,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+    styleActiveLine: true,
+    extraKeys: {
+      "Ctrl-Space": "autocomplete",
+      "'>'": function(cm) {
+        if (cm.getOption("autoCloseTags")) {
+          const pos = cm.getCursor();
+          const token = cm.getTokenAt(pos);
+          if (token && token.string === '>') {
+            const line = cm.getLine(pos.line);
+            const before = line.substring(0, pos.ch);
+            const tagMatch = before.match(/<(\w+)[^>]*$/);
+            if (tagMatch) {
+              const tagName = tagMatch[1].toLowerCase();
+              if (!['br', 'hr', 'img', 'input', 'meta', 'link', 'area', 'base', 'col', 'embed', 'source', 'track', 'wbr'].includes(tagName)) {
+                cm.replaceSelection('></' + tagName + '>');
+                cm.setCursor(pos.line, pos.ch + 1);
+              }
+            }
+          }
+        }
+      }
+    },
+    hintOptions: {
+      completeSingle: false,
+      closeOnUnfocus: true
+    }
   });
 
-  // CSS Editor
-  cssEditor = CodeMirror.fromTextArea(document.getElementById("cssEditor"), {
-    mode: "css",
-    theme: "monokai",
-    lineNumbers: true,
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    indentUnit: 2,
-    tabSize: 2,
-    lineWrapping: true
-  });
-
-  // JavaScript Editor
-  jsEditor = CodeMirror.fromTextArea(document.getElementById("jsEditor"), {
-    mode: "javascript",
-    theme: "monokai",
-    lineNumbers: true,
-    autoCloseBrackets: true,
-    matchBrackets: true,
-    indentUnit: 2,
-    tabSize: 2,
-    lineWrapping: true
+  // Enable HTML autocomplete
+  htmlEditor.on('inputRead', function(cm, change) {
+    if (change.text[0].length > 0 && change.text[0][0] !== ' ') {
+      CodeMirror.commands.autocomplete(cm, null, { completeSingle: false });
+    }
   });
 
   // Auto-update preview on change
-  htmlEditor.on('change', debounce(updatePreview, 500));
-  cssEditor.on('change', debounce(updatePreview, 500));
-  jsEditor.on('change', debounce(updatePreview, 500));
+  htmlEditor.on('change', debounce(updatePreview, 300));
+  
+  // Initial preview update
+  setTimeout(updatePreview, 100);
 }
 
 // Setup Event Listeners
@@ -113,9 +137,43 @@ function switchEditorTab(lang) {
   // Refresh the active editor
   setTimeout(() => {
     if (lang === 'html') htmlEditor.refresh();
-    else if (lang === 'css') cssEditor.refresh();
-    else if (lang === 'js') jsEditor.refresh();
   }, 50);
+}
+
+// Setup Free Mode
+function setupFreeMode() {
+  // Update sidebar for free mode
+  const taskDetail = document.getElementById('taskDetail');
+  if (taskDetail) {
+    taskDetail.innerHTML = `
+      <h4 class="task-title">💡 Geliştirici Modu</h4>
+      <p class="task-description">Serbest modda HTML kodlarınızı yazın ve gerçek zamanlı olarak önizleyin. Herhangi bir görev veya kısıtlama olmadan deneyim yapın!</p>
+      <div class="task-meta">
+        <span class="task-difficulty">⭐ Serbest</span>
+        <span class="task-points">🎯 Sınırsız</span>
+      </div>
+    `;
+  }
+  
+  // Update header info
+  document.getElementById('activeTaskNumber').textContent = 'Geliştirici Modu';
+  document.getElementById('activeTaskTitle').textContent = 'Serbest HTML Editörü';
+  
+  // Hide validation button in free mode
+  const validateBtn = document.getElementById('validateBtn');
+  if (validateBtn) {
+    validateBtn.style.display = 'none';
+  }
+  
+  // Hide hint button in free mode
+  const hintBtn = document.getElementById('hintBtn');
+  if (hintBtn) {
+    hintBtn.style.display = 'none';
+  }
+  
+  // Start with empty editor
+  htmlEditor.setValue('<!DOCTYPE html>\n<html lang="tr">\n<head>\n  <meta charset="UTF-8">\n  <title>Benim Sayfam</title>\n</head>\n<body>\n  <h1>Merhaba Dünya!</h1>\n  <p>HTML kodunuzu buraya yazın...</p>\n</body>\n</html>');
+  updatePreview();
 }
 
 // Load Task
@@ -168,57 +226,125 @@ function loadStarterCode() {
   if (!currentTask || !currentTask.starterCode) return;
 
   htmlEditor.setValue(currentTask.starterCode.html || '');
-  cssEditor.setValue(currentTask.starterCode.css || '');
-  jsEditor.setValue(currentTask.starterCode.js || '');
+  // Update preview after loading starter code
+  setTimeout(updatePreview, 100);
 }
 
 // Reset Code
 function resetCode() {
   if (!confirm('Kodu sıfırlamak istediğinizden emin misiniz?')) return;
-  loadStarterCode();
+  
+  if (isFreeMode) {
+    htmlEditor.setValue('<!DOCTYPE html>\n<html lang="tr">\n<head>\n  <meta charset="UTF-8">\n  <title>Benim Sayfam</title>\n</head>\n<body>\n  <h1>Merhaba Dünya!</h1>\n  <p>HTML kodunuzu buraya yazın...</p>\n</body>\n</html>');
+  } else {
+    loadStarterCode();
+  }
   updatePreview();
 }
 
 // Update Live Preview
 function updatePreview() {
   const iframe = document.getElementById('previewFrame');
+  if (!iframe) return;
+  
   const html = htmlEditor.getValue();
-  const css = cssEditor.getValue();
-  const js = jsEditor.getValue();
 
-  // Build complete HTML document
-  const fullHTML = `
+  // If HTML is empty, show a placeholder
+  if (!html || html.trim() === '') {
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write(`
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
-    body { margin: 0; padding: 1rem; font-family: Arial, sans-serif; }
-    ${css}
+    body { 
+      margin: 0; 
+      padding: 2rem; 
+      font-family: Arial, sans-serif; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+      color: #666;
+    }
+    .placeholder {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="placeholder">
+    <h2>👁️ Canlı Önizleme</h2>
+    <p>HTML kodunuzu yazmaya başlayın, burada sonucu göreceksiniz.</p>
+  </div>
+</body>
+</html>
+      `);
+      iframeDoc.close();
+    }
+    return;
+  }
+
+  // Build complete HTML document
+  // If the HTML already contains DOCTYPE, use it as-is, otherwise wrap it
+  let fullHTML;
+  if (html.trim().toLowerCase().startsWith('<!doctype') || html.trim().toLowerCase().startsWith('<html')) {
+    // User provided full HTML document
+    fullHTML = html;
+  } else {
+    // User provided HTML fragment, wrap it
+    fullHTML = `
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canlı Önizleme</title>
+  <style>
+    body { 
+      margin: 0; 
+      padding: 1rem; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+    }
+    * {
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
   ${html}
-  <script>
-    try {
-      ${js}
-    } catch (error) {
-      console.error('JavaScript Error:', error);
-    }
-  </script>
 </body>
 </html>
-  `;
+    `;
+  }
 
   // Update iframe
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-  iframeDoc.open();
-  iframeDoc.write(fullHTML);
-  iframeDoc.close();
+  try {
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write(fullHTML);
+      iframeDoc.close();
+    }
+  } catch (error) {
+    console.error('Preview update error:', error);
+    // Fallback: try using srcdoc
+    iframe.srcdoc = fullHTML;
+  }
 }
 
 // Validate Task
 function validateTask() {
+  if (isFreeMode) {
+    alert('Geliştirici modunda görev doğrulama yapılamaz.');
+    return;
+  }
+  
   if (!currentTask || !currentTask.validation) {
     alert('Bu görev için otomatik kontrol mevcut değil.');
     return;
@@ -348,6 +474,11 @@ function goBackToTasks() {
 
 // Show Hint Modal
 function showHintModal() {
+  if (isFreeMode) {
+    alert('Geliştirici modunda ipucu özelliği kullanılamaz.');
+    return;
+  }
+  
   if (!currentTask) return;
 
   const modal = document.getElementById('hintModal');

@@ -159,6 +159,13 @@ function renderZigzagPath({ categoryName = null, chapterNumber = null } = {}) {
     const taskNumber = task.order || (index + 1);
     const points = task.points || 10;
     
+    // Set z-index: lower task numbers appear on top (higher z-index)
+    // Reverse the order so task 1 has highest z-index
+    // Start from base 10 to ensure nodes are above SVG (z-index: 1)
+    const totalTasks = tasks.length;
+    const zIndex = 10 + (totalTasks - index);
+    node.style.zIndex = zIndex;
+    
     node.innerHTML = `
       <div class="node-circle ${isCompleted ? 'completed' : ''}">
         <span class="node-icon">${getTaskIcon(task)}</span>
